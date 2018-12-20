@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+    <style>
+      body {
+        background: #f5f5f5;
+      }
+      * {
+        font-family: "helvetica neue";
+        box-sizing: border-box;
+      }
+      .autocomplete {
+        background: #fff;
+        position: relative;
+        width: 400px;
+        box-shadow: 0 0 2px rgba(0, 0, 0, 0.12), 0 2px 2px rgba(0, 0, 0, 0.24);
+      }
+      .autocomplete .close {
+        position: absolute;
+        font-size: 13px;
+        z-index: 10;
+        top: 10px;
+        left: calc(100% - 50px);
+        color: #aaa;
+        cursor: pointer;
+        display: none;
+      }
+      .autocomplete .close.visible {
+        display: block;
+      }
+      input {
+        padding: 10px 10px;
+        font-weight: 300;
+        width: 100%;
+        border: none;
+        outline: none;
+        font-size: 14px;
+        color: #666;
+      }
+      .dialog {
+        width: 100%;
+        display: none;
+        min-height: 40px;
+        max-height: 330px;
+        overflow: scroll;
+        border-top: 1px solid #f4f4f4;
+      }
+      .dialog.open {
+        display: block;
+      }
+      .dialog div {
+        padding: 20px 10px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .dialog div:hover {
+        background: #f2f2f2;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="autocomplete">
+      <input type="text" placeholder="Search by Dish?" />
+      <span class="close">Cancel</span>
+      <div class="dialog"></div>
+    </div>
+
+    <script
+      src="https://code.jquery.com/jquery-3.3.1.js"
+      integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      $(function() {
+        var alreadyFilled = false;
+        var dishNames = [
+          "All you can eat",
+          "American",
+          "Antipasto",
+          "Arepas",
+          "Argentinean",
+          "Avocado",
+          "BBQ",
+          "Bacon",
+          "Bagels",
+          "Bakery",
+          "Beef and Broccoli",
+          "Beef Chow Fun",
+          "Blue Cheese",
+          "Bok Choy",
+          "Bread",
+          "Breakfast Burrito",
+          "Breakfast",
+          "Brisket",
+          "Brunch",
+          "Brussel Sprouts",
+          "Buffalo Wings",
+          "Burger",
+          "Burrata",
+          "Burrito",
+          "Caesar Salad",
+          "Cajun",
+          "Cake",
+          "Calamari",
+          "Calzone",
+          "Cambodian",
+          "Caribbean",
+          "Carnitas",
+          "Cauliflower",
+          "Central America",
+          "Ceviche",
+          "Charcuterie",
+          "Cheddar Cheese",
+          "Cheese Burger",
+          "Cheese Cake",
+          "Cheese Steak",
+          "Cheese",
+          "Chicken and Rice",
+          "Chicken",
+          "Chili",
+          "Chinese",
+          "Chocolate",
+          "Clams",
+          "Comfort Food",
+          "Corned Beef",
+          "Corn",
+          "Crab",
+          "Curry",
+          "Deep Dish Pizza",
+          "Deli",
+          "Dim Sum",
+          "Donuts",
+          "Drunken Noodles",
+          "Duck",
+          "Dumplings",
+          "Eggplant Parmesan",
+          "Eggplant",
+          "Eggs",
+          "Enchiladas",
+          "Ethiopian",
+          "Falafel",
+          "Fettuccini",
+          "Filet Mignon",
+          "Fish and Chips",
+          "Fish Tacos",
+          "Fish",
+          "Foie Gras",
+          "French Dip",
+          "French Onion Soup",
+          "French Toast",
+          "French",
+          "Fried Chicken and Waffles",
+          "Fried Chicken",
+          "Fried Green Tomato",
+          "Fried Pickles",
+          "Fried Rice",
+          "Fries",
+          "Frozen Yogurt",
+          "Fruit",
+          "Fudge",
+          "Garlic",
+          "Gelato",
+          "General Tso",
+          "German",
+          "Ginger",
+          "Gluten-Free",
+          "Gnocchi",
+          "Goat Cheese",
+          "Gouda",
+          "Granola",
+          "Greek Salad",
+          "Greek",
+          "Grilled Chicken Sandwich",
+          "Grilled Chicken",
+          "Grits",
+          "Guacamole",
+          "Gumbo",
+          "Hamburger",
+          "Ham",
+          "Hash Browns",
+          "Honey",
+          "Hot Dog",
+          "Hot Sauce",
+          "Hummus",
+          "Hush Puppies",
+          "Ice Cream",
+          "Italian Sub",
+          "Italian",
+          "Jamaican",
+          "Jambalaya",
+          "Japanese",
+          "Jasmine Rice",
+          "Jerk Chicken",
+          "Kabob",
+          "Kale",
+          "Kimchi",
+          "Kobi Beef",
+          "Kung Po Chicken",
+          "Lamb",
+          "Lasagna",
+          "Leek",
+          "Lemon Grass",
+          "Lemon Pepper Chicken",
+          "Lemon",
+          "Lettuce Wrap",
+          "Lime",
+          "Linguine Clam Sauce",
+          "Lo Mein",
+          "Lobster Bisque",
+          "Lobster Roll",
+          "Lobster Tail",
+          "Lobster",
+          "Lox and Bagels",
+          "Mac and Cheese",
+          "Mango Salsa",
+          "Manicotti",
+          "Maple Bacon",
+          "Maple Donuts",
+          "Maple Syrup",
+          "Maple",
+          "Marinara",
+          "Mashed Potatoes",
+          "Meat and Cheese Board",
+          "Meatball Marinara",
+          "Meatball Pizza",
+          "Meatball Sandwich",
+          "Meatball Sub",
+          "Mexican",
+          "Milk Chocolate",
+          "Milk Shake",
+          "Mint Ice Cream",
+          "Mint",
+          "Miso Soup",
+          "Miso",
+          "Mongolian Beef",
+          "Mongolian",
+          "Moo Shoo",
+          "Mortadella",
+          "Mozzarella in Carrozza",
+          "Mozzarella Sticks",
+          "Mozzarella",
+          "Mushroom Burger",
+          "Mushroom Sandwich",
+          "Mushroom Soup",
+          "Mushroom",
+          "Mussels Frites",
+          "Mussels",
+          "Nachos",
+          "Noodles",
+          "Nori",
+          "Nuggets",
+          "Nuts",
+          "Oatmeal Cookie",
+          "Oatmeal",
+          "Octopus",
+          "Okra",
+          "Olive Oil",
+          "Olive Tempenade",
+          "Olives",
+          "Omelet",
+          "Omu-Raisu",
+          "Onion Rings",
+          "Onions",
+          "Orange Chicken",
+          "Orange",
+          "Oyster Soup",
+          "Oysters on the Shell",
+          "Oysters",
+          "Paella",
+          "Pancakes",
+          "Papaya",
+          "Paprika",
+          "Papusas",
+          "Parmesan Chicken",
+          "Parmesan",
+          "Pasta",
+          "Pastrami",
+          "Peach",
+          "Peanuts",
+          "Pecan Pie",
+          "Pecorino",
+          "Pepperoni",
+          "Peppers",
+          "Philly Cheese Steak",
+          "Pico",
+          "Pie",
+          "Pita",
+          "Pizza",
+          "Po Boy",
+          "Poached Eggs",
+          "Polenta",
+          "Pork Chop",
+          "Pork Loin",
+          "Pork",
+          "Pot Pie",
+          "Prawns",
+          "Prosciutto",
+          "Provolone",
+          "Pulled Pork",
+          "Pumpkin Spice",
+          "Quail",
+          "Quesadilla",
+          "Queso",
+          "Quinoa",
+          "Rabbit",
+          "Ratatouille",
+          "Ravioli",
+          "Red Beans and Rice",
+          "Reuben Sandwich",
+          "Ribs",
+          "Rice",
+          "Ricotta",
+          "Rigatoni",
+          "Roast Chicken",
+          "Salad",
+          "Salmon",
+          "Salsa",
+          "Sandwich",
+          "Saur Kraut",
+          "Sausage",
+          "Scallops",
+          "Shrimp & Grits",
+          "Shrimp Po Boy",
+          "Shrimp",
+          "Smoked",
+          "Soup",
+          "Soya Chicken",
+          "Soya",
+          "Spaghetti and Meatballs",
+          "Spaghetti",
+          "Spanish",
+          "Spinach",
+          "Squid Ink Pasta",
+          "Squid",
+          "Steak",
+          "Sub",
+          "Sushi",
+          "Sweet Potato Fries",
+          "Swiss",
+          "Tacos",
+          "Tater Tots",
+          "Tex-Mex",
+          "Tofu Claypot",
+          "Tofu",
+          "Tomato Soup",
+          "Truffles",
+          "Turkey Sandwich",
+          "Umami",
+          "Vanilla",
+          "Vegan",
+          "Vegetable",
+          "Vegetarian",
+          "Veggie Sandwich",
+          "Waffles",
+          "Wagyu Beef",
+          "Wasabi",
+          "Won Ton",
+          "Yuzu",
+          "Ziti",
+          "Zucchini"
+        ];
+
+        function initDialog() {
+          clearDialog();
+          for (var i = 0; i < dishNames.length; i++) {
+            $(".dialog").append("<div>" + dishNames[i] + "</div>");
+          }
+        }
+        function clearDialog() {
+          $(".dialog").empty();
+        }
+        $(".autocomplete input").click(function() {
+          if (!alreadyFilled) {
+            $(".dialog").addClass("open");
+          }
+        });
+        $("body").on("click", ".dialog > div", function() {
+          $(".autocomplete input")
+            .val($(this).text())
+            .focus();
+          $(".autocomplete .close").addClass("visible");
+          alreadyFilled = true;
+        });
+        $(".autocomplete .close").click(function() {
+          alreadyFilled = false;
+          $(".dialog").addClass("open");
+          $(".autocomplete input")
+            .val("")
+            .focus();
+          $(this).removeClass("visible");
+        });
+
+        function match(str) {
+          str = str.toLowerCase();
+          clearDialog();
+          for (var i = 0; i < dishNames.length; i++) {
+            if (dishNames[i].toLowerCase().startsWith(str)) {
+              $(".dialog").append("<div>" + dishNames[i] + "</div>");
+            }
+          }
+        }
+        $(".autocomplete input").on("input", function() {
+          $(".dialog").addClass("open");
+          alreadyFilled = false;
+          match($(this).val());
+        });
+        $("body").click(function(e) {
+          if (!$(e.target).is("input, .close")) {
+            $(".dialog").removeClass("open");
+          }
+        });
+        initDialog();
+      });
+    </script>
+  </body>
+</html>
